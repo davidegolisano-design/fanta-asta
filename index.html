@@ -354,8 +354,14 @@ label{ font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(-
     <div class="timer-num" id="master-timer-num"></div>
 
     <div class="bid-grid">
-      <button class="btn" onclick="masterBid()">Rilancia tu (master)</button>
-      <button class="btn danger" onclick="cancelCurrentAuction()">Annulla asta</button>
+      <button class="btn" onclick="masterBid()">+1</button>
+      <button class="btn secondary" onclick="masterBid(5)">+5</button>
+      <button class="btn secondary" onclick="masterBid(10)">+10</button>
+      <button class="btn danger" onclick="cancelCurrentAuction()">Annulla</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <input type="number" id="master-custom-bid" placeholder="Offerta libera..." style="margin:0;">
+      <button class="btn secondary" style="margin:0;" onclick="masterAbsoluteBid()">Offri</button>
     </div>
     <button class="btn secondary" onclick="forceAssign()" style="margin-top:10px;">Assegna ora (chiudi anticipata)</button>
   </div>
@@ -580,26 +586,26 @@ function nextTeamColor(){
 }
 
 const SERIE_A_LOGOS = {
-  "Atalanta": "https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg",
-  "Bologna": "https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg",
-  "Cagliari": "https://upload.wikimedia.org/wikipedia/en/6/61/Cagliari_Calcio_1920.svg",
-  "Como": "https://upload.wikimedia.org/wikipedia/en/e/ed/Como_1907_logo.svg",
-  "Fiorentina": "https://upload.wikimedia.org/wikipedia/commons/e/eb/ACF_Fiorentina_2.svg",
-  "Frosinone": "https://upload.wikimedia.org/wikipedia/en/4/4b/Frosinone_Calcio_logo.svg",
-  "Genoa": "https://upload.wikimedia.org/wikipedia/en/6/6c/Genoa_C.F.C._logo.svg",
-  "Inter": "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg",
-  "Juventus": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Juventus_FC_-_pictogram_black_%28Italy%2C_2017%29.svg",
-  "Lazio": "https://upload.wikimedia.org/wikipedia/en/c/ce/S.S._Lazio_badge.svg",
-  "Lecce": "https://upload.wikimedia.org/wikipedia/en/4/4c/U.S._Lecce_logo.svg",
-  "Milan": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg",
-  "Monza": "https://upload.wikimedia.org/wikipedia/commons/9/9f/AC_Monza_logo.svg",
-  "Napoli": "https://upload.wikimedia.org/wikipedia/commons/2/28/SSC_Napoli_logo_2024.svg",
-  "Parma": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Parma_Calcio_1913_logo.svg",
-  "Roma": "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg",
-  "Sassuolo": "https://upload.wikimedia.org/wikipedia/en/1/1c/US_Sassuolo_Calcio_logo.svg",
-  "Torino": "https://upload.wikimedia.org/wikipedia/en/2/2e/Torino_FC_Logo.svg",
-  "Udinese": "https://upload.wikimedia.org/wikipedia/en/c/ce/Udinese_Calcio_logo.svg",
-  "Venezia": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Venezia_FC_logo.svg"
+  "Atalanta": "https://images.fotmob.com/image_resources/logo/teamlogo/8524.png",
+  "Bologna": "https://images.fotmob.com/image_resources/logo/teamlogo/9857.png",
+  "Cagliari": "https://images.fotmob.com/image_resources/logo/teamlogo/8529.png",
+  "Como": "https://images.fotmob.com/image_resources/logo/teamlogo/8534.png",
+  "Fiorentina": "https://images.fotmob.com/image_resources/logo/teamlogo/8535.png",
+  "Frosinone": "https://images.fotmob.com/image_resources/logo/teamlogo/9891.png",
+  "Genoa": "https://images.fotmob.com/image_resources/logo/teamlogo/10233.png",
+  "Inter": "https://images.fotmob.com/image_resources/logo/teamlogo/8636.png",
+  "Juventus": "https://images.fotmob.com/image_resources/logo/teamlogo/9885.png",
+  "Lazio": "https://images.fotmob.com/image_resources/logo/teamlogo/8543.png",
+  "Lecce": "https://images.fotmob.com/image_resources/logo/teamlogo/8597.png",
+  "Milan": "https://images.fotmob.com/image_resources/logo/teamlogo/8564.png",
+  "Monza": "https://images.fotmob.com/image_resources/logo/teamlogo/6504.png",
+  "Napoli": "https://images.fotmob.com/image_resources/logo/teamlogo/9875.png",
+  "Parma": "https://images.fotmob.com/image_resources/logo/teamlogo/10167.png",
+  "Roma": "https://images.fotmob.com/image_resources/logo/teamlogo/8686.png",
+  "Sassuolo": "https://images.fotmob.com/image_resources/logo/teamlogo/7943.png",
+  "Torino": "https://images.fotmob.com/image_resources/logo/teamlogo/9804.png",
+  "Udinese": "https://images.fotmob.com/image_resources/logo/teamlogo/8600.png",
+  "Venezia": "https://images.fotmob.com/image_resources/logo/teamlogo/7881.png"
 };
 
 function teamLogo(teamName, size, fallbackColor){
@@ -1069,7 +1075,7 @@ function pickPlayerForAuction(listId){
   if(!p || p.taken) return;
   currentAuction = {
     listId, name:p.name, role:p.role, team:p.team, qt:p.qt,
-    price:p.qt, leaderTeamId:null, leaderName:null
+    price:0, leaderTeamId:null, leaderName:null
   };
   timeLeft = auctionConfig.timerSeconds;
   document.getElementById('master-noplayer-box').style.display='none';
@@ -1131,7 +1137,16 @@ function handleBid(teamId, amount){
   renderMasterAuctionUI();
   Object.values(conns).forEach(c=>{ if(c.open) c.send({type:'auction-update', auction:currentAuction}); });
 }
-function masterBid(){ handleBid(masterTeamId); }
+
+function masterBid(inc){ handleBid(masterTeamId, inc); }
+function masterAbsoluteBid(){
+  const a = currentAuction;
+  if(!a) return;
+  const val = parseInt(document.getElementById('master-custom-bid').value);
+  if(isNaN(val) || val <= a.price) { toast('Cifra troppo bassa!'); return; }
+  masterBid(val - a.price);
+  document.getElementById('master-custom-bid').value = '';
+}
 
 function finalizeAuction(){
   const a = currentAuction;
@@ -1207,8 +1222,13 @@ function updatePlayerAuctionUI(){
   }
   document.getElementById('player-block-reason').textContent = blocked || '';
   document.getElementById('player-bid-buttons').innerHTML = `
-    <button class="btn" ${blocked?'disabled':''} onclick="sendBid()">Rilancia (+${auctionConfig.minIncrement}) → ${nextPrice} cr</button>
-    <button class="btn secondary" ${blocked?'disabled':''} onclick="sendBid(5)">Rilancia +5 → ${a.price+5} cr</button>
+    <button class="btn" style="grid-column: span 2;" ${blocked?'disabled':''} onclick="sendBid()">Rilancia +${auctionConfig.minIncrement} (${nextPrice} cr)</button>
+    <button class="btn secondary" ${blocked?'disabled':''} onclick="sendBid(5)">+5 (${a.price+5} cr)</button>
+    <button class="btn secondary" ${blocked?'disabled':''} onclick="sendBid(10)">+10 (${a.price+10} cr)</button>
+    <div style="grid-column: span 2; display:flex; gap:8px; margin-top:4px;">
+      <input type="number" id="player-custom-bid" placeholder="Cifra esatta..." style="margin:0; flex:1;" ${blocked?'disabled':''}>
+      <button class="btn secondary" style="margin:0; white-space:nowrap;" ${blocked?'disabled':''} onclick="sendAbsoluteBid()">Offri cifra</button>
+    </div>
   `;
   // local visual countdown mirrors master timing loosely
 }
@@ -1216,6 +1236,12 @@ function sendBid(customIncrement){
   const conn = conns['master'];
   if(conn && conn.open) conn.send({type:'bid', teamId:myId, amount:customIncrement||null});
 }
+function sendAbsoluteBid(){
+  const val = parseInt(document.getElementById('player-custom-bid').value);
+  if(isNaN(val) || val <= currentAuction.price) { toast('Cifra troppo bassa!'); return; }
+  sendBid(val - currentAuction.price);
+}
+
 function renderMyRoster(team){
   const box = document.getElementById('player-my-roster');
   if(!team.roster.length){ box.innerHTML='<span class="sub">Ancora nessun giocatore</span>'; return; }
