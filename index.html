@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Asta Fanta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,12 +30,15 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
+html{ background:var(--bg-dark); }
 body{
   margin:0;
   font-family:'Titillium Web', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: radial-gradient(circle at 50% 0%, var(--bg-light), var(--bg) 55%, var(--bg-dark) 100%);
   color:var(--cream);
   min-height:100vh;
+  min-height:100dvh;
+  padding-bottom:env(safe-area-inset-bottom);
   display:flex;
   flex-direction:column;
   overflow-x:hidden;
@@ -65,6 +68,15 @@ input[type=text], input[type=number], select, textarea{
   outline:none;
 }
 input:focus, select:focus, textarea:focus{ border-color:var(--azure); background:rgba(255,255,255,.09); }
+
+input[type=file]{
+  background:rgba(255,255,255,.06); border:1px dashed var(--line); border-radius:10px;
+  padding:12px; font-size:13px; color:var(--cream-dim);
+}
+input[type=file]::file-selector-button{
+  background:var(--azure); color:var(--bg-dark); border:none; border-radius:8px;
+  padding:8px 14px; font-weight:700; margin-right:10px; font-family:'Poppins', sans-serif;
+}
 label{ font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--cream-dim); display:block; margin-bottom:6px; margin-top:4px;}
 
 .btn{
@@ -133,10 +145,11 @@ label{ font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(-
 .player-stage{ text-align:center; padding:22px 14px; border-radius:18px; margin-bottom:16px; position:relative; overflow:hidden;
   background:linear-gradient(160deg, var(--bg-light), var(--bg-dark)); border:1px solid var(--line);}
 .player-stage .role-badge{ position:absolute; top:12px; left:12px; }
+.player-stage .club-badge{ position:absolute; top:8px; right:10px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
 .player-avatar{ width:74px; height:74px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;
   font-size:28px; font-weight:900; border:3px solid var(--azure); background:rgba(255,255,255,.08);}
 .player-stage .pname{ font-size:24px; font-weight:900; margin-bottom:2px;}
-.player-stage .pteam{ color:var(--cream-dim); font-size:14px; margin-bottom:14px; display:flex; align-items:center; justify-content:center; }
+.player-stage .pteam{ color:var(--cream-dim); font-size:14px; margin-bottom:14px; display:flex; align-items:center; justify-content:center;}
 .price-tag{ font-size:44px; font-weight:900; color:var(--azure); line-height:1; margin-bottom:2px;}
 .price-label{ font-size:11px; text-transform:uppercase; letter-spacing:2px; color:var(--cream-dim); margin-bottom:10px;}
 .leader{ font-size:14px; color:var(--cream); background:rgba(41,182,246,.15); display:inline-flex; align-items:center; padding:6px 14px; border-radius:20px;}
@@ -159,8 +172,8 @@ label{ font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(-
 .roster-list .r-item{ font-size:11px; background:rgba(255,255,255,.06); padding:4px 8px; border-radius:8px; }
 
 .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--azure); color:var(--bg-dark);
-  padding:10px 20px; border-radius:30px; font-weight:800; font-size:14px; opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; z-index:99; white-space:nowrap;}
-.toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px);}
+  padding:10px 20px; border-radius:30px; font-weight:800; font-size:14px; opacity:0; visibility:hidden; transition:opacity .3s, transform .3s, visibility .3s; pointer-events:none; z-index:99; white-space:nowrap;}
+.toast.show{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(-6px);}
 
 .tabs{ display:flex; border-bottom:1px solid var(--line); margin-bottom:14px;}
 .tabs button{ flex:1; background:none; border:none; color:var(--cream-dim); padding:10px; font-weight:800; font-size:13px; border-bottom:2px solid transparent;}
@@ -309,7 +322,7 @@ label{ font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(-
   <h3>Squadre collegate</h3>
   <div class="card" id="waiting-teams-list"><p class="sub">In attesa di collegamenti…</p></div>
   <button class="btn" id="start-auction-btn" onclick="startAuctionSession()" disabled>Inizia l'asta</button>
-  <p class="sub" style="text-align:center;">Serve almeno 1 squadra oltre al master per iniziare.</p>
+  <p class="sub" style="text-align:center;">Puoi iniziare anche da solo per fare una prova.</p>
 </div>
 
 <!-- SCREEN: PLAYER WAITING ROOM -->
@@ -492,7 +505,7 @@ const STARTER_LISTONE = [
 ["Dele-Bashiru","C","Lazio",5],["Taylor K.","C","Lazio",13],["Przyborek","C","Lazio",1],["Cancellieri","C","Lazio",9],["Isaksen","C","Lazio",9],["Zaccagni","C","Lazio",16],
 ["Dia","A","Lazio",10],["Noslin","A","Lazio",6],["Ratkov","A","Lazio",10],["Falcone","P","Lecce",8],["Fruchtl","P","Lecce",1],["Samooja","P","Lecce",1],
 ["Gaspar K.","D","Lecce",5],["Jean","D","Lecce",2],["Siebert","D","Lecce",4],["Tiago Gabriel","D","Lecce",7],["Perez M.","D","Lecce",1],["Veiga D.","D","Lecce",5],
-["Gallo","D","Lecce",6],["Ndaba","D","Lecce",1],["Coulibaly L.","C","Lecce",6],["Gorter","C","Lecce",1],["Kaba","C","Lecce",2],["Maleh","C","Lecce",2],
+["Gallo","D","Lecce",6],["Ndaba","D","Lecce",1],["Coulibaly L.","C","Lecce",6],["Gorter","C","Lecce",1],["Kaba","C","Lecce",1],["Maleh","C","Lecce",2],
 ["Ngom","C","Lecce",4],["Fofana Sa.","C","Lecce",1],["Berisha M.","C","Lecce",5],["Gandelman","C","Lecce",5],["Pierotti","C","Lecce",6],["N\'Dri","A","Lecce",3],
 ["Geubbels","A","Lecce",9],["Stulic","A","Lecce",7],["Maignan","P","Milan",15],["Terracciano","P","Milan",1],["Torriani","P","Milan",1],["Gabbia","D","Milan",7],
 ["Gila","D","Milan",12],["Pavlovic","D","Milan",14],["Tomori","D","Milan",7],["De Winter","D","Milan",3],["Diawara S.","D","Milan",2],["Athekame","D","Milan",3],
@@ -565,6 +578,7 @@ function nextTeamColor(){
   const used = Object.keys(teams).length;
   return TEAM_COLOR_PALETTE[used % TEAM_COLOR_PALETTE.length];
 }
+
 const SERIE_A_LOGOS = {
   "Atalanta": "https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg",
   "Bologna": "https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg",
@@ -588,7 +602,7 @@ const SERIE_A_LOGOS = {
   "Venezia": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Venezia_FC_logo.svg"
 };
 
-function teamLogo(teamName, size){
+function teamLogo(teamName, size, fallbackColor){
   size = size || 20;
   let url = null;
   if (teamName) {
@@ -596,7 +610,55 @@ function teamLogo(teamName, size){
     if (key) url = SERIE_A_LOGOS[key];
   }
   if (url) return `<img src="${url}" width="${size}" height="${size}" style="vertical-align:middle; margin-right:5px; flex-shrink:0; object-fit:contain;">`;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:5px; flex-shrink:0;"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" fill="#2a5c8f" stroke="rgba(255,255,255,.3)" stroke-width="1"/></svg>`;
+  return jersey(fallbackColor || '#2a5c8f', size);
+}
+
+function jersey(color, size){
+  size = size||20;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:5px; flex-shrink:0;"><path d="M8.5 2 4 5.5V9h2.2v12.5h11.6V9H20V5.5L15.5 2l-2 1.8h-3L8.5 2z" fill="${color}" stroke="rgba(0,0,0,.3)" stroke-width="0.6"/></svg>`;
+}
+
+// Colori sociali reali dei club presenti nel listone — usati per lo sfondo della carta giocatore in asta
+const CLUB_STYLE = {
+  "Atalanta":{c1:"#000000",c2:"#1c3f95"}, "Bologna":{c1:"#a6192e",c2:"#0d1b4c"},
+  "Cagliari":{c1:"#a6192e",c2:"#002868"}, "Como":{c1:"#4fb3ff",c2:"#0a2a5e"},
+  "Fiorentina":{c1:"#5b2a86",c2:"#33134d"}, "Frosinone":{c1:"#ffd400",c2:"#003399"},
+  "Genoa":{c1:"#c8102e",c2:"#002868"}, "Inter":{c1:"#010e80",c2:"#000000"},
+  "Juventus":{c1:"#1a1a1a",c2:"#4a4a4a"}, "Lazio":{c1:"#87ceeb",c2:"#1c4f7c"},
+  "Lecce":{c1:"#ffd400",c2:"#d2001c"}, "Milan":{c1:"#ac0000",c2:"#000000"},
+  "Monza":{c1:"#d2001c",c2:"#7a0010"}, "Napoli":{c1:"#4fb3ff",c2:"#003a70"},
+  "Parma":{c1:"#ffd400",c2:"#002868"}, "Roma":{c1:"#a6192e",c2:"#f0b323"},
+  "Sassuolo":{c1:"#0d0d0d",c2:"#1c8c3c"}, "Torino":{c1:"#6b1f2a",c2:"#3d1017"},
+  "Udinese":{c1:"#000000",c2:"#4a4a4a"}, "Venezia":{c1:"#ff7f11",c2:"#0d0d0d"}
+};
+function clubStyleFor(teamName){ return CLUB_STYLE[teamName] || {c1:"#123a7a", c2:"#04122b"}; }
+function clubInitials(teamName){
+  const clean = (teamName||'').replace(/[^A-Za-zÀ-ÿ ]/g,'');
+  const words = clean.split(' ').filter(Boolean);
+  return words.length>=2 ? (words[0][0]+words[1][0]).toUpperCase() : clean.slice(0,3).toUpperCase();
+}
+function clubShield(teamName, size){
+  size = size||46;
+  let url = null;
+  if (teamName) {
+    const key = Object.keys(SERIE_A_LOGOS).find(k => teamName.toLowerCase().includes(k.toLowerCase()));
+    if (key) url = SERIE_A_LOGOS[key];
+  }
+  if (url) return `<img src="${url}" width="${size}" height="${size}" class="club-badge" style="object-fit:contain; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));">`;
+
+  const s = clubStyleFor(teamName);
+  const ini = clubInitials(teamName);
+  const cid = 'cs'+ini+Math.random().toString(36).slice(2,7);
+  return `<svg width="${size}" height="${size*1.1}" viewBox="0 0 40 46" class="club-badge">
+    <defs><clipPath id="${cid}"><rect x="20" y="0" width="20" height="46"/></clipPath></defs>
+    <path d="M20 2 L36 8 V21 C36 33 29 41 20 44 C11 41 4 33 4 21 V8 Z" fill="${s.c1}" stroke="rgba(0,0,0,.35)" stroke-width="1"/>
+    <path d="M20 2 L36 8 V21 C36 33 29 41 20 44 C11 41 4 33 4 21 V8 Z" fill="${s.c2}" clip-path="url(#${cid})"/>
+    <text x="20" y="27" font-family="Poppins, sans-serif" font-weight="900" font-size="11" fill="#fff" text-anchor="middle">${ini}</text>
+  </svg>`;
+}
+function applyClubBackground(el, teamName){
+  const s = clubStyleFor(teamName);
+  if(el) el.style.background = `linear-gradient(160deg, ${s.c1}, ${s.c2})`;
 }
 
 /* ============ SETUP SCREEN LOGIC ============ */
@@ -802,7 +864,7 @@ function handleMasterMessage(conn, data){
     };
     broadcastState();
     renderWaitingTeams();
-    document.getElementById('start-auction-btn').disabled = Object.keys(teams).length<2;
+    document.getElementById('start-auction-btn').disabled = false;
     toast(data.teamName+' si è collegato');
   }
   if(data.type==='bid'){
@@ -818,8 +880,8 @@ function handleMasterMessage(conn, data){
 function renderWaitingTeams(){
   const box = document.getElementById('waiting-teams-list');
   const arr = Object.values(teams);
-  box.innerHTML = arr.map(t=>`<div class="listone-item"><div style="display:flex;align-items:center;">${teamLogo(t.teamName,20)}<div><span class="name">${t.teamName}</span><div class="team">${t.coachName}${t.isMaster?' · Master':''}</div></div></div><span class="chip ${t.online?'D':'A'}">${t.online?'online':'offline'}</span></div>`).join('');
-  document.getElementById('start-auction-btn').disabled = arr.length<2;
+  box.innerHTML = arr.map(t=>`<div class="listone-item"><div style="display:flex;align-items:center;">${teamLogo(t.teamName, 20, t.color)}<div><span class="name">${t.teamName}</span><div class="team">${t.coachName}${t.isMaster?' · Master':''}</div></div></div><span class="chip ${t.online?'D':'A'}">${t.online?'online':'offline'}</span></div>`).join('');
+  document.getElementById('start-auction-btn').disabled = false;
 }
 
 /* ============ JOIN (PLAYER) ============ */
@@ -925,12 +987,12 @@ function handleSpectatorMessage(data){
 }
 
 function teamPill(t, extra){
-  return `<div class="team-pill" style="border-color:${t.color||'var(--line)'}"><div class="tn">${teamLogo(t.teamName,16)}${t.teamName}${t.isMaster?' 👑':''}</div><div class="tb">${t.budget} cr</div>${extra?`<div class="sub">${extra}</div>`:''}</div>`;
+  return `<div class="team-pill" style="border-color:${t.color||'var(--line)'}"><div class="tn">${teamLogo(t.teamName, 16, t.color||'#888')}${t.teamName}${t.isMaster?' 👑':''}</div><div class="tb">${t.budget} cr</div>${extra?`<div class="sub">${extra}</div>`:''}</div>`;
 }
 function leaderLine(a){
   if(!a.leaderName) return 'Base asta';
   const t = teams[a.leaderTeamId];
-  return `${teamLogo(t?t.teamName:'', 20)}${a.leaderName}`;
+  return `${teamLogo(a.leaderName, 20, t?t.color:'#888')}${a.leaderName}`;
 }
 
 function renderSpectatorIdle(){
@@ -942,8 +1004,10 @@ function renderSpectatorIdle(){
 function renderSpectatorStage(){
   const a = currentAuction;
   if(!a) return;
-  document.getElementById('spectator-stage').innerHTML = `
+  const stage = document.getElementById('spectator-stage');
+  stage.innerHTML = `
     <div class="role-badge chip ${a.role}">${roleLabel(a.role)}</div>
+    ${clubShield(a.team, 46)}
     <div class="player-avatar">${initials(a.name)}</div>
     <div class="pname">${a.name}</div>
     <div class="pteam">${teamLogo(a.team, 18)} ${a.team}</div>
@@ -951,6 +1015,7 @@ function renderSpectatorStage(){
     <div class="price-label">crediti</div>
     <div class="leader">${leaderLine(a)}</div>
   `;
+  applyClubBackground(stage, a.team);
 }
 
 function renderPlayerWaitingTeams(){
@@ -1016,8 +1081,10 @@ function pickPlayerForAuction(listId){
 
 function renderMasterAuctionUI(){
   const a = currentAuction;
-  document.getElementById('master-stage').innerHTML = `
+  const stage = document.getElementById('master-stage');
+  stage.innerHTML = `
     <div class="role-badge chip ${a.role}">${roleLabel(a.role)}</div>
+    ${clubShield(a.team, 46)}
     <div class="player-avatar">${initials(a.name)}</div>
     <div class="pname">${a.name}</div>
     <div class="pteam">${teamLogo(a.team, 18)} ${a.team}</div>
@@ -1025,6 +1092,7 @@ function renderMasterAuctionUI(){
     <div class="price-label">crediti</div>
     <div class="leader">${leaderLine(a)}</div>
   `;
+  applyClubBackground(stage, a.team);
 }
 
 /* ============ TIMER (master authoritative) ============ */
@@ -1117,8 +1185,10 @@ function showPlayerAuction(){
 function updatePlayerAuctionUI(){
   const a = currentAuction;
   if(!a) return;
-  document.getElementById('player-stage').innerHTML = `
+  const stage = document.getElementById('player-stage');
+  stage.innerHTML = `
     <div class="role-badge chip ${a.role}">${roleLabel(a.role)}</div>
+    ${clubShield(a.team, 46)}
     <div class="player-avatar">${initials(a.name)}</div>
     <div class="pname">${a.name}</div>
     <div class="pteam">${teamLogo(a.team, 18)} ${a.team}</div>
@@ -1126,6 +1196,7 @@ function updatePlayerAuctionUI(){
     <div class="price-label">crediti</div>
     <div class="leader">${leaderLine(a)}</div>
   `;
+  applyClubBackground(stage, a.team);
   const me = teams[myId];
   const nextPrice = a.price + auctionConfig.minIncrement;
   let blocked = null;
@@ -1168,7 +1239,7 @@ function renderTeamManagementPanel(teamId){
   const box = document.getElementById('master-teams-content');
   box.innerHTML = `
     <div class="card">
-      <h3 style="display:flex; align-items:center;">${teamLogo(t.teamName,22)}${t.teamName} ${t.isMaster?'👑':''}</h3>
+      <h3 style="display:flex; align-items:center;">${teamLogo(t.teamName, 22, t.color)}${t.teamName} ${t.isMaster?'👑':''}</h3>
       <p class="sub">${t.coachName} · ${t.online?'online':'offline'}</p>
       <label>Budget residuo</label>
       <div class="row">
