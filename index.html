@@ -575,6 +575,15 @@ function toast(msg){
 }
 function roleLabel(r){ return {P:'Portiere',D:'Difensore',C:'Centrocampista',A:'Attaccante'}[r]||r; }
 function initials(name){ return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+function playerAvatar(pName, pId){
+  const ini = initials(pName);
+  if(pId && !String(pId).startsWith('p')){
+    return `<img src="https://content.fantacalcio.it/web/giocatori/250/${pId}.png" class="player-avatar" style="object-fit:cover; border:3px solid var(--azure); background:rgba(255,255,255,.08);" onerror="this.outerHTML='<div class=&quot;player-avatar&quot;>${ini}</div>'">`;
+  }
+  return `<div class="player-avatar">${ini}</div>`;
+}
+
 function genRoomCode(){ return String(Math.floor(1000+Math.random()*9000)); }
 function rosterCount(team, role){ return team.roster.filter(r=>r.role===role).length; }
 function rosterFull(team, role){ return rosterCount(team, role) >= auctionConfig.limits[role]; }
@@ -589,7 +598,7 @@ const SERIE_A_LOGOS = {
   "Atalanta": "https://images.fotmob.com/image_resources/logo/teamlogo/8524.png",
   "Bologna": "https://images.fotmob.com/image_resources/logo/teamlogo/9857.png",
   "Cagliari": "https://images.fotmob.com/image_resources/logo/teamlogo/8529.png",
-  "Como": "https://images.fotmob.com/image_resources/logo/teamlogo/8534.png",
+  "Como": "https://images.fotmob.com/image_resources/logo/teamlogo/10496.png",
   "Fiorentina": "https://images.fotmob.com/image_resources/logo/teamlogo/8535.png",
   "Frosinone": "https://images.fotmob.com/image_resources/logo/teamlogo/9891.png",
   "Genoa": "https://images.fotmob.com/image_resources/logo/teamlogo/10233.png",
@@ -782,6 +791,7 @@ function rowsFromOfficialSheet(raw){
   let headerIdx = raw.findIndex(r => r.includes('Nome') && r.includes('R') && r.includes('Squadra'));
   if(headerIdx === -1) headerIdx = 0;
   const header = raw[headerIdx].map(h=>String(h).trim());
+  const iId = header.indexOf('Id');
   const iRole = header.indexOf('R');
   const iName = header.indexOf('Nome');
   const iTeam = header.indexOf('Squadra');
@@ -796,7 +806,8 @@ function rowsFromOfficialSheet(raw){
     if(!name || !['P','D','C','A'].includes(role)) continue;
     const team = iTeam!==-1 ? String(row[iTeam]||'').trim() : '—';
     const qt = iQt!==-1 ? (parseInt(row[iQt]) || 1) : 1;
-    out.push({id:'p'+r, name, role, team, qt, taken:false});
+    const fId = (iId !== -1 && row[iId]) ? String(row[iId]).trim() : ('p'+r);
+    out.push({id:fId, name, role, team, qt, taken:false});
   }
   return out;
 }
@@ -1014,7 +1025,7 @@ function renderSpectatorStage(){
   stage.innerHTML = `
     <div class="role-badge chip ${a.role}">${roleLabel(a.role)}</div>
     ${clubShield(a.team, 46)}
-    <div class="player-avatar">${initials(a.name)}</div>
+    ${playerAvatar(a.name, a.listId)}
     <div class="pname">${a.name}</div>
     <div class="pteam">${teamLogo(a.team, 18)} ${a.team}</div>
     <div class="price-tag">${a.price}</div>
@@ -1091,7 +1102,7 @@ function renderMasterAuctionUI(){
   stage.innerHTML = `
     <div class="role-badge chip ${a.role}">${roleLabel(a.role)}</div>
     ${clubShield(a.team, 46)}
-    <div class="player-avatar">${initials(a.name)}</div>
+    ${playerAvatar(a.name, a.listId)}
     <div class="pname">${a.name}</div>
     <div class="pteam">${teamLogo(a.team, 18)} ${a.team}</div>
     <div class="price-tag">${a.price}</div>
@@ -1204,7 +1215,7 @@ function updatePlayerAuctionUI(){
   stage.innerHTML = `
     <div class="role-badge chip ${a.role}">${roleLabel(a.role)}</div>
     ${clubShield(a.team, 46)}
-    <div class="player-avatar">${initials(a.name)}</div>
+    ${playerAvatar(a.name, a.listId)}
     <div class="pname">${a.name}</div>
     <div class="pteam">${teamLogo(a.team, 18)} ${a.team}</div>
     <div class="price-tag">${a.price}</div>
@@ -1240,6 +1251,7 @@ function sendAbsoluteBid(){
   const val = parseInt(document.getElementById('player-custom-bid').value);
   if(isNaN(val) || val <= currentAuction.price) { toast('Cifra troppo bassa!'); return; }
   sendBid(val - currentAuction.price);
+  document.getElementById('player-custom-bid').value = '';
 }
 
 function renderMyRoster(team){
